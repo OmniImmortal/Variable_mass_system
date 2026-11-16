@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="VariableMassSystem.App/VariableMassSystem.App.csproj" />
+  <Project Path="VariableMassSystem.Model.Tests/VariableMassSystem.Model.Tests.csproj" />
+  <Project Path="VariableMassSystem.Model/VariableMassSystem.Model.csproj" />
+  <Project Path="VariableMassSystem.ViewModel.Tests/VariableMassSystem.ViewModel.Tests.csproj" />
+  <Project Path="VariableMassSystem.ViewModel/VariableMassSystem.ViewModel.csproj" />
+</Solution>
