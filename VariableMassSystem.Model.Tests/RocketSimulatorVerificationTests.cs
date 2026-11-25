@@ -40,6 +40,7 @@ public class RocketSimulatorVerificationTests
         var expectedSpeed = parameters.ExhaustVelocity * Math.Log(parameters.M0 / parameters.MDry);
         var relativeError = Math.Abs(burnout.Speed - expectedSpeed) / expectedSpeed;
 
+        _output.WriteLine($"Tsiolkovsky relative error: {relativeError:R}");
         Assert.InRange(relativeError, 0, 1e-9);
     }
 
