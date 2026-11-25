@@ -33,6 +33,20 @@ public class RocketParametersTests
         Assert.NotEmpty((ValidParameters with { MDry = 0 }).Validate());
     }
 
+    [Fact]
+    public void Validate_AcceptsZeroForNonNegativeParameters()
+    {
+        var parameters = ValidParameters with
+        {
+            G = 0,
+            DragCoefficient = 0,
+            CrossSectionArea = 0,
+            AirDensity = 0
+        };
+
+        Assert.Empty(parameters.Validate());
+    }
+
     [Theory]
     [InlineData(nameof(RocketParameters.MassFlowRate))]
     [InlineData(nameof(RocketParameters.ExhaustVelocity))]
@@ -108,6 +122,12 @@ public class RocketParametersTests
 
         Assert.Contains(RocketParameters.InsufficientThrustMessage, parameters.Validate());
         Assert.False(parameters.CanLiftOff);
+    }
+
+    [Fact]
+    public void Validate_RejectsUnknownThrustMode()
+    {
+        Assert.NotEmpty((ValidParameters with { ThrustMode = (ThrustMode)123 }).Validate());
     }
 
     [Fact]
