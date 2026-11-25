@@ -1,9 +1,17 @@
 using VariableMassSystem.Model;
+using Xunit.Abstractions;
 
 namespace VariableMassSystem.Model.Tests;
 
 public class RocketSimulatorVerificationTests
 {
+    private readonly ITestOutputHelper _output;
+
+    public RocketSimulatorVerificationTests(ITestOutputHelper output)
+    {
+        _output = output;
+    }
+
     [Theory]
     [InlineData(45, ThrustMode.FixedAngle, 0.01)]
     [InlineData(90, ThrustMode.FixedAngle, 0.01)]
@@ -67,6 +75,57 @@ public class RocketSimulatorVerificationTests
             Assert.InRange(Math.Abs(point.Vx - burnout.Vx), 0, 1e-10);
             AssertRelativeClose(MechanicalEnergy(point, parameters), initialEnergy, 1e-8);
         }
+    }
+
+    [Fact]
+    public void DragCase_ConvergesAtFourthOrder()
+    {
+        var speeds = new[]
+        {
+            BurnoutSpeedWithStep(0.6),
+            BurnoutSpeedWithStep(0.3),
+            BurnoutSpeedWithStep(0.15)
+        };
+        var firstError = Math.Abs(speeds[0] - speeds[1]);
+        var secondError = Math.Abs(speeds[1] - speeds[2]);
+        var order = Math.Log(firstError / secondError, 2);
+
+        _output.WriteLine($"e1={firstError:R}; e2={secondError:R}; order={order:R}");
+        Assert.InRange(order, 3.5, 4.5);
+    }
+
+    [Fact]
+    public void VerticalDragCase_ReachesExpectedTerminalSpeed()
+    {
+        var parameters = CreateParameters() with
+        {
+            TimeStep = 0.1,
+            DragCoefficient = 0.45,
+            CrossSectionArea = 0.5,
+            MaxTime = 1000
+        };
+        var result = new RocketSimulator().Simulate(parameters);
+        var expectedTerminalSpeed = Math.Sqrt(
+            2 * parameters.MDry * parameters.G /
+            (parameters.AirDensity * parameters.DragCoefficient * parameters.CrossSectionArea));
+        var relativeError = Math.Abs(result.ImpactPoint!.Value.Speed - expectedTerminalSpeed) /
+            expectedTerminalSpeed;
+
+        Assert.InRange(relativeError, 0, 0.02);
+    }
+
+    private static double BurnoutSpeedWithStep(double timeStep)
+    {
+        var parameters = CreateParameters() with
+        {
+            LaunchAngleDeg = 60,
+            TimeStep = timeStep,
+            DragCoefficient = 0.45,
+            CrossSectionArea = 0.5,
+            MaxTime = 60.1
+        };
+
+        return new RocketSimulator().Simulate(parameters).BurnoutPoint!.Value.Speed;
     }
 
     private static RocketParameters CreateParameters() => new()
